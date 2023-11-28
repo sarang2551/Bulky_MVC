@@ -32,12 +32,13 @@ namespace BulkyWeb.Controllers
             {
                 _db.Categories.Add(obj);
                 _db.SaveChanges();
+                TempData["success"] = "Created category successfully";
                 return RedirectToAction("Index");
             }
             return View();
             
         }
-        public IActionResult Edit(int? id)
+        public IActionResult Edit(int? id) // This is by default a GET action. Hence, when clicked on the Edit button it runs this function
         {
             if (id == null || id == 0)
             {
@@ -52,14 +53,39 @@ namespace BulkyWeb.Controllers
             return View(categoryFromDb); // passes a Category object that auto populates the values in the Edit table
         }
         [HttpPost]
-        public IActionResult Edit(int id)
+        public IActionResult Edit(Category obj)
         {
-            return View(id);
+            if(ModelState.IsValid)
+            {
+                _db.Categories.Update(obj);
+                _db.SaveChanges();
+                TempData["success"] = "Edited category successfully";
+                return RedirectToAction("Index");
+            }
+            return View();
+            
         }
-        public IActionResult Delete(int id)
+
+        [ActionName("Delete")]
+        public IActionResult DeleteCategory(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            Category? categoryFromDb = _db.Categories.Find(id);
+            if (categoryFromDb == null)
+            {
+                return NotFound();
+            }
+            // if found then delete
+            _db.Categories.Remove(categoryFromDb);
+            _db.SaveChanges();
+            TempData["success"] = "Deleted category successfully";
             return RedirectToAction("Index");
+
         }
- 
+
+
     }
 }
