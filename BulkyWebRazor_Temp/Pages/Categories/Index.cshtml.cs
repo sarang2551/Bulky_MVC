@@ -17,5 +17,15 @@ namespace BulkyWebRazor_Temp.Pages.Categories
         {
             CategoryList = _db.Categories.ToList();
         }
+        public IActionResult OnPostDelete(int? id)
+        {
+            if(id == null) return NotFound();
+            Category? categoryFromDb = _db.Categories.Find(id);
+            if(categoryFromDb == null) return NotFound();
+            _db.Categories.Remove(categoryFromDb);
+            _db.SaveChanges();
+            TempData["success"] = "Category deleted successfully";
+            return RedirectToPage("Index");
+        }
     }
 }
