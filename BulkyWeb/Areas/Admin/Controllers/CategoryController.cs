@@ -1,20 +1,23 @@
-﻿using BulkyWeb.Data;
-using Microsoft.AspNetCore.Mvc;
-using BulkyWeb.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Bulky.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Bulky.DataAccess.Data;
+using Bulky.DataAccess.Repository;
+using Bulky.DataAccess.Repository.IRepository;
 
-namespace BulkyWeb.Controllers
+namespace BulkyWeb.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _db;
-        public CategoryController(ApplicationDbContext db)
+        private readonly IUnitofWork _unitOfWork;
+        public CategoryController(IUnitofWork unitOfWork)
         {
-            _db= db;
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index() // http:localhost:Port/Controller=Category/Action=Index
         {
-            List<Category> objCategoryList = _db.Categories.ToList();
+            List<Category> objCategoryList = _unitOfWork.Category.GetAll().ToList();
             return View(objCategoryList); // returns a html file from the Views folder. Program searches directory named Category
         }
         public IActionResult Create()
@@ -30,13 +33,13 @@ namespace BulkyWeb.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Categories.Add(obj);
-                _db.SaveChanges();
+                _unitOfWork.Category.Add(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Created category successfully";
                 return RedirectToAction("Index");
             }
             return View();
-            
+
         }
         public IActionResult Edit(int? id) // This is by default a GET action. Hence, when clicked on the Edit button it runs this function
         {
@@ -45,8 +48,8 @@ namespace BulkyWeb.Controllers
                 return NotFound();
             }
             // if id is not null 
-            Category? categoryFromDb = _db.Categories.FirstOrDefault(u=>u.Id==id);
-            if(categoryFromDb == null)
+            Category? categoryFromDb = _unitOfWork.Category.Get(u => u.Id == id);
+            if (categoryFromDb == null)
             {
                 return NotFound();
             }
@@ -55,15 +58,15 @@ namespace BulkyWeb.Controllers
         [HttpPost]
         public IActionResult Edit(Category obj)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                _db.Categories.Update(obj);
-                _db.SaveChanges();
+                _unitOfWork.Category.Update(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Edited category successfully";
                 return RedirectToAction("Index");
             }
             return View();
-            
+
         }
 
         [ActionName("Delete")]
@@ -73,14 +76,14 @@ namespace BulkyWeb.Controllers
             {
                 return NotFound();
             }
-            Category? categoryFromDb = _db.Categories.Find(id);
+            Category? categoryFromDb = _unitOfWork.Category.Get(u => u.Id == id);
             if (categoryFromDb == null)
             {
                 return NotFound();
             }
             // if found then delete
-            _db.Categories.Remove(categoryFromDb);
-            _db.SaveChanges();
+            _unitOfWork.Category.Remove(categoryFromDb);
+            _unitOfWork.Save();
             TempData["success"] = "Deleted category successfully";
             return RedirectToAction("Index");
 
